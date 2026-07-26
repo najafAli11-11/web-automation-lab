@@ -1,1 +1,252 @@
-[]
+[
+  {
+    "id": 1,
+    "title": "The Legend of Zelda: Ocarina of Time",
+    "platform": "N64",
+    "price": 89.99,
+    "year": 1998,
+    "condition": "CIB",
+    "region": "NTSC",
+    "description": "Complete in box with manual and map insert. Cartridge tested and saves reliably."
+  },
+  {
+    "id": 2,
+    "title": "Super Mario World",
+    "platform": "SNES",
+    "price": 44.50,
+    "year": 1990,
+    "condition": "loose",
+    "region": "NTSC",
+    "description": "Cartridge only, label lightly worn but fully legible. Cleaned contacts, plays perfectly."
+  },
+  {
+    "id": 3,
+    "title": "Final Fantasy VII",
+    "platform": "PS1",
+    "price": 34.99,
+    "year": 1997,
+    "condition": "CIB",
+    "region": "NTSC",
+    "description": "All three discs free of scratches with original jewel cases. Includes the black-label manual."
+  },
+  {
+    "id": 4,
+    "title": "Sonic the Hedgehog 2",
+    "platform": "Genesis",
+    "price": 18.75,
+    "year": 1992,
+    "condition": "loose",
+    "region": "NTSC",
+    "description": "Loose cartridge in good cosmetic shape. A staple of any Genesis collection."
+  },
+  {
+    "id": 5,
+    "title": "Pokemon Red Version",
+    "platform": "Game Boy",
+    "price": 62.00,
+    "year": 1996,
+    "condition": "loose",
+    "region": "NTSC",
+    "description": "Authentic cartridge with a fresh save battery installed. Holds saves indefinitely."
+  },
+  {
+    "id": 6,
+    "title": "Chrono Trigger",
+    "platform": "SNES",
+    "price": 199.99,
+    "year": 1995,
+    "condition": "sealed",
+    "region": "NTSC",
+    "description": "Factory sealed original print, a genuine grail for RPG collectors. Corners sharp, seam intact."
+  },
+  {
+    "id": 7,
+    "title": "GoldenEye 007",
+    "platform": "N64",
+    "price": 29.95,
+    "year": 1997,
+    "condition": "loose",
+    "region": "NTSC",
+    "description": "Loose cart, tested in multiplayer and single player. Classic Rareware shooter."
+  },
+  {
+    "id": 8,
+    "title": "Panzer Dragoon Saga",
+    "platform": "Saturn",
+    "price": 749.00,
+    "year": 1998,
+    "condition": "CIB",
+    "region": "NTSC",
+    "description": "Notoriously rare four-disc RPG, complete with spine card. One of the Saturn's holy grails."
+  },
+  {
+    "id": 9,
+    "title": "Metal Gear Solid",
+    "platform": "PS1",
+    "price": 41.25,
+    "year": 1998,
+    "condition": "CIB",
+    "region": "PAL",
+    "description": "PAL complete copy with both discs and manual. Case has minor shelf wear."
+  },
+  {
+    "id": 10,
+    "title": "Super Metroid",
+    "platform": "SNES",
+    "price": 78.40,
+    "year": 1994,
+    "condition": "CIB",
+    "region": "NTSC",
+    "description": "Complete in box including the fold-out poster and manual. Cartridge label pristine."
+  },
+  {
+    "id": 11,
+    "title": "Radiant Silvergun",
+    "platform": "Saturn",
+    "price": 312.50,
+    "year": 1998,
+    "condition": "loose",
+    "region": "NTSC-J",
+    "description": "Japanese import shmup by Treasure, disc only. Highly sought after by shoot-em-up fans."
+  },
+  {
+    "id": 12,
+    "title": "Banjo-Kazooie",
+    "platform": "N64",
+    "price": 33.00,
+    "year": 1998,
+    "condition": "loose",
+    "region": "PAL",
+    "description": "PAL cartridge, tested and working. Beloved 3D platformer from Rare."
+  },
+  {
+    "id": 13,
+    "title": "Castlevania: Symphony of the Night",
+    "platform": "PS1",
+    "price": 129.99,
+    "year": 1997,
+    "condition": "CIB",
+    "region": "NTSC",
+    "description": "Complete with the rare original manual. Disc shows only faint hairline marks, plays flawlessly."
+  },
+  {
+    "id": 14,
+    "title": "Gunstar Heroes",
+    "platform": "Genesis",
+    "price": 54.00,
+    "year": 1993,
+    "condition": "loose",
+    "region": "NTSC",
+    "description": "Treasure's run-and-gun classic, loose cartridge. Increasingly hard to find in the wild."
+  },
+  {
+    "id": 15,
+    "title": "Kirby's Dream Land",
+    "platform": "Game Boy",
+    "price": 22.99,
+    "year": 1992,
+    "condition": "loose",
+    "region": "NTSC",
+    "description": "Original Game Boy cartridge, label bright and clean. A gentle, charming platformer."
+  },
+  {
+    "id": 16,
+    "title": "Dragon Quest V: Tenkuu no Hanayome",
+    "platform": "Super Famicom",
+    "price": 47.80,
+    "year": 1992,
+    "condition": "CIB",
+    "region": "NTSC-J",
+    "description": "Japanese Super Famicom release, complete with box and manual. Box art in excellent condition."
+  },
+  {
+    "id": 17,
+    "title": "Tony Hawk's Pro Skater 2",
+    "platform": "PS1",
+    "price": 19.99,
+    "year": 2000,
+    "condition": "CIB",
+    "region": "NTSC",
+    "description": "Complete copy of the definitive skateboarding game. Disc and manual in great shape."
+  },
+  {
+    "id": 18,
+    "title": "Shining Force II",
+    "platform": "Genesis",
+    "price": 88.00,
+    "year": 1994,
+    "condition": "CIB",
+    "region": "PAL",
+    "description": "PAL complete strategy RPG with manual. A deep tactical adventure and collector favorite."
+  },
+  {
+    "id": 19,
+    "title": "Conker's Bad Fur Day",
+    "platform": "N64",
+    "price": 154.99,
+    "year": 2001,
+    "condition": "loose",
+    "region": "NTSC",
+    "description": "Late-era N64 cult classic, loose cart tested and working. Mature humor and stellar production."
+  },
+  {
+    "id": 20,
+    "title": "EarthBound",
+    "platform": "SNES",
+    "price": 289.00,
+    "year": 1995,
+    "condition": "loose",
+    "region": "NTSC",
+    "description": "Iconic quirky RPG, cartridge only. Even loose copies command a strong premium."
+  },
+  {
+    "id": 21,
+    "title": "Wild Guns",
+    "platform": "SNES",
+    "price": 176.50,
+    "year": 1994,
+    "condition": "loose",
+    "region": "NTSC",
+    "description": "Obscure but adored shooting-gallery game by Natsume. Loose cart, contacts freshly cleaned."
+  },
+  {
+    "id": 22,
+    "title": "Klonoa: Door to Phantomile",
+    "platform": "PS1",
+    "price": 96.25,
+    "year": 1997,
+    "condition": "CIB",
+    "region": "NTSC",
+    "description": "Charming 2.5D platformer, complete with manual. An underrated gem of the PS1 library."
+  },
+  {
+    "id": 23,
+    "title": "Wario Land 3",
+    "platform": "Game Boy Color",
+    "price": 27.40,
+    "year": 2000,
+    "condition": "loose",
+    "region": "PAL",
+    "description": "PAL cartridge, tested and saving correctly. A dense, puzzle-heavy platforming adventure."
+  },
+  {
+    "id": 24,
+    "title": "Vagrant Story",
+    "platform": "PS1",
+    "price": 58.99,
+    "year": 2000,
+    "condition": "CIB",
+    "region": "NTSC",
+    "description": "Square's atmospheric action-RPG, complete in case with manual. Disc near mint."
+  },
+  {
+    "id": 25,
+    "title": "Alisia Dragoon",
+    "platform": "Genesis",
+    "price": 133.00,
+    "year": 1992,
+    "condition": "loose",
+    "region": "NTSC",
+    "description": "Cult-favorite action game with striking anime-style visuals. Loose cartridge, label intact."
+  }
+]
