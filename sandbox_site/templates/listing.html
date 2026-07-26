@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Retro Game Marketplace</title>
+</head>
+<body>
+  <h1>Retro Game Marketplace</h1>
+  <p>{{ total_items }} listings &mdash; page {{ page }} of {{ total_pages }}</p>
+
+  <ul id="listing">
+    {% for item in items %}
+    <li class="item">
+      <a href="{{ url_for('detail', item_id=item.id) }}" class="item-link">{{ item.title }}</a>
+      <span class="platform">[{{ item.platform }}]</span>
+      <span class="price">${{ "%.2f"|format(item.price) }}</span>
+      <span class="condition">{{ item.condition }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <nav id="pagination">
+    {% if has_prev %}
+    <a href="{{ url_for('listing', page=page-1) }}" rel="prev" class="prev">&laquo; Previous</a>
+    {% endif %}
+    {% if has_next %}
+    <a href="{{ url_for('listing', page=page+1) }}" rel="next" class="next">Next &raquo;</a>
+    {% endif %}
+  </nav>
+</body>
+</html>

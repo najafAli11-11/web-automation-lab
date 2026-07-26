@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ item.title }}</title>
+</head>
+<body>
+  <p><a href="{{ url_for('listing') }}" class="back-link">&laquo; Back to listings</a></p>
+
+  <h1 id="item-title">{{ item.title }}</h1>
+
+  <dl id="item-detail">
+    <dt>ID</dt><dd class="field-id">{{ item.id }}</dd>
+    <dt>Platform</dt><dd class="field-platform">{{ item.platform }}</dd>
+    <dt>Price</dt><dd class="field-price">${{ "%.2f"|format(item.price) }}</dd>
+    <dt>Year</dt><dd class="field-year">{{ item.year }}</dd>
+    <dt>Condition</dt><dd class="field-condition">{{ item.condition }}</dd>
+    <dt>Region</dt><dd class="field-region">{{ item.region }}</dd>
+    <dt>Description</dt><dd class="field-description">{{ item.description }}</dd>
+  </dl>
+</body>
+</html>
