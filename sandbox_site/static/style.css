@@ -1,0 +1,135 @@
+/* Minimal styling for the retro-game sandbox.
+   Appearance earns zero marks per the brief; this is just so the site
+   is pleasant to demo. Stable ids/classes for bot selectors are
+   unchanged in the templates. */
+
+:root {
+  --bg: #1b1a2e;
+  --panel: #26244a;
+  --ink: #e8e6ff;
+  --muted: #a9a6d6;
+  --accent: #ffcb47;
+  --line: #3a3766;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 2rem 1rem 4rem;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+h1 {
+  max-width: 900px;
+  margin: 0 auto 0.5rem;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}
+
+body > p,
+nav,
+ul#listing,
+dl#item-detail,
+.back-link {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body > p { color: var(--muted); }
+
+/* Listing */
+ul#listing {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+li.item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.item-link {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+  flex: 1 1 240px;
+}
+.item-link:hover { color: var(--accent); text-decoration: underline; }
+
+.platform {
+  font-size: 0.75rem;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+}
+
+.price {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.condition {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Pagination */
+nav#pagination {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+nav#pagination a {
+  color: var(--bg);
+  background: var(--accent);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+}
+nav#pagination a.next { margin-left: auto; }
+
+/* Detail */
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--muted);
+}
+
+dl#item-detail {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1.5rem;
+  padding: 1.5rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+dl#item-detail dt {
+  font-weight: 600;
+  color: var(--muted);
+}
+dl#item-detail dd { margin: 0; }
+
+.field-price { color: var(--accent); font-weight: 700; }
