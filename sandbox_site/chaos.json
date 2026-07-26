@@ -1,0 +1,14 @@
+{
+  "random_mode": false,
+  "seed": 0,
+  "scenarios": {
+    "popup_modal": { "enabled": false, "probability": 0.0 },
+    "cookie_banner": { "enabled": false, "probability": 0.0 },
+    "captcha_gate": { "enabled": false, "probability": 0.0 },
+    "server_errors": { "enabled": false, "probability": 0.0 },
+    "slow_responses": { "enabled": false, "probability": 0.0 },
+    "unexpected_redirect": { "enabled": false, "probability": 0.0 },
+    "dom_drift": { "enabled": false, "probability": 0.0 },
+    "blocked_clicks": { "enabled": false, "probability": 0.0 }
+  }
+}
