@@ -120,16 +120,30 @@ def apply_chaos():
 
 
 def _cookie_banner_html():
+    # Accept removes the banner client-side. The server also sets a
+    # cookie_consent cookie (see inject_content_chaos), so it will not
+    # reappear on the next request either. Plan §2 scenario 2:
+    # "Accept/dismiss once before the workflow starts; verify removed."
     return (
         '<div id="cookie-banner" class="cookie-banner" role="dialog" '
         'aria-label="cookie consent">'
         "<span>We use cookies to make this retro shop work. </span>"
         '<button id="accept-cookies" class="accept-cookies">Accept</button>'
         "</div>"
+        "<script>(function(){"
+        "var b=document.getElementById('cookie-banner');"
+        "var a=document.getElementById('accept-cookies');"
+        "if(a){a.addEventListener('click',function(){if(b)b.remove();});}"
+        "})();</script>"
     )
 
 
 def _popup_modal_html():
+    # Dismissable via the close button OR the Escape key OR clicking the
+    # dimmed backdrop. Plan §2 scenario 1: "Dismiss (close button / ESC)
+    # whenever seen; verify gone; then continue." A modal is a real
+    # obstacle but always clearable through normal interaction (that is
+    # what distinguishes it from scenario 8 blocked_clicks).
     return (
         '<div id="popup-overlay" class="modal-overlay">'
         '<div id="popup-modal" class="modal" role="dialog" '
@@ -139,6 +153,17 @@ def _popup_modal_html():
         '<button id="popup-close" class="modal-close" '
         'aria-label="close">&times;</button>'
         "</div></div>"
+        "<script>(function(){"
+        "var o=document.getElementById('popup-overlay');"
+        "if(!o)return;"
+        "function close(){o.remove();"
+        "document.removeEventListener('keydown',onKey);}"
+        "function onKey(e){if(e.key==='Escape')close();}"
+        "var c=document.getElementById('popup-close');"
+        "if(c)c.addEventListener('click',close);"
+        "o.addEventListener('click',function(e){if(e.target===o)close();});"
+        "document.addEventListener('keydown',onKey);"
+        "})();</script>"
     )
 
 
