@@ -133,3 +133,77 @@ dl#item-detail dt {
 dl#item-detail dd { margin: 0; }
 
 .field-price { color: var(--accent); font-weight: 700; }
+
+/* ------------------------------------------------------------------ */
+/* Chaos-injected elements (modal, cookie banner).                     */
+/* These are appended before </body> by the chaos engine. They must    */
+/* sit above the page and be anchored to the viewport, not flow to the */
+/* bottom of the document. Styling only — ids/classes are the bot's    */
+/* targets and are set server-side.                                    */
+/* ------------------------------------------------------------------ */
+
+/* Popup modal + dimming overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 9, 20, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  position: relative;
+  max-width: 380px;
+  width: calc(100% - 2rem);
+  padding: 1.75rem 1.5rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.modal h2 { margin-top: 0; color: var(--accent); }
+.modal p { color: var(--muted); }
+
+.modal-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.modal-close:hover { color: var(--ink); }
+
+/* Cookie consent banner — pinned to the bottom of the viewport */
+.cookie-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem;
+  background: #14132a;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.accept-cookies {
+  margin-left: auto;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 0.45rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
