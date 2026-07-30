@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ item.title }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="detail-card">
+    <h2 class="detail-heading">{{ item.title }}</h2>
+
+    <table class="detail-grid">
+      <tr><td class="lbl">ID</td><td class="val val-id">{{ item.id }}</td></tr>
+      <tr><td class="lbl">Platform</td><td class="val val-platform">{{ item.platform }}</td></tr>
+      <tr><td class="lbl">Price</td><td class="val val-price">${{ "%.2f"|format(item.price) }}</td></tr>
+      <tr><td class="lbl">Year</td><td class="val val-year">{{ item.year }}</td></tr>
+      <tr><td class="lbl">Condition</td><td class="val val-condition">{{ item.condition }}</td></tr>
+      <tr><td class="lbl">Region</td><td class="val val-region">{{ item.region }}</td></tr>
+      <tr><td class="lbl">Description</td><td class="val val-description">{{ item.description }}</td></tr>
+    </table>
+
+    <p><a href="{{ url_for('listing') }}" class="back-link">Back to listings</a></p>
+  </div>
+</body>
+</html>

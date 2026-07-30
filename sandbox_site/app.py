@@ -14,9 +14,11 @@ resulting HTML/status like a human would.
 import json
 import math
 import random
+import time
 from pathlib import Path
+from urllib.parse import urlencode, urlparse, parse_qs, urlunparse
 
-from flask import Flask, abort, g, render_template, request
+from flask import Flask, abort, g, redirect, render_template, request
 
 app = Flask(__name__)
 
@@ -28,7 +30,7 @@ PER_PAGE = 8
 
 # All scenario keys the engine knows about (matches chaos.json). Scenarios
 # not yet implemented are still parsed/decided so the config stays honest;
-# only the three below actually have effects wired in for now.
+# only the five below actually have effects wired in for now.
 SCENARIO_KEYS = [
     "popup_modal", "cookie_banner", "captcha_gate", "server_errors",
     "slow_responses", "unexpected_redirect", "dom_drift", "blocked_clicks",
@@ -50,7 +52,7 @@ def load_items():
     Read on each request so edits to the dataset show up without a
     restart. The file is small, so the cost is negligible.
     """
-    with open(DATA_PATH, encoding="utf-8") as f:
+    with open(DATA_PATH, encoding="utf-8-sig") as f:
         return json.load(f)
 
 
@@ -58,7 +60,7 @@ def load_chaos():
     """Read chaos.json fresh. Returns a safe default if missing/invalid so a
     bad edit disables chaos rather than crashing the whole site."""
     try:
-        with open(CHAOS_PATH, encoding="utf-8") as f:
+        with open(CHAOS_PATH, encoding="utf-8-sig") as f:
             cfg = json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
         return {"random_mode": False, "seed": 0, "scenarios": {}}
@@ -104,6 +106,7 @@ def apply_chaos():
 
     _request_seq += 1
     seq = _request_seq
+    g._request_seq = seq
     cfg = load_chaos()
     active = decide_scenarios(cfg, seq)
     g.chaos = active
@@ -111,10 +114,42 @@ def apply_chaos():
     # server_errors: fail for a bounded window of requests, then recover.
     # The window is keyed off the request counter so it is reproducible and
     # self-heals (the bot must back off and retry, not give up).
+    # Uses (seq-1) so the pattern is always 2 errors → 2 OK from seq=1.
     if "server_errors" in active:
-        if seq % (SERVER_ERROR_WINDOW + 2) < SERVER_ERROR_WINDOW:
-            code = SERVER_ERROR_CODES[seq % len(SERVER_ERROR_CODES)]
+        if (seq - 1) % (SERVER_ERROR_WINDOW + 2) < SERVER_ERROR_WINDOW:
+            code = SERVER_ERROR_CODES[(seq - 1) % len(SERVER_ERROR_CODES)]
             abort(code)
+
+    # slow_responses: inject a random multi-second delay before responding.
+    # The bot must distinguish "slow" (wait longer, bounded) from "dead"
+    # (server_errors path). Delay is 2-5 seconds, deterministic per request.
+    if "slow_responses" in active:
+        rng = random.Random(cfg.get("seed", 0) * 1_000_003 + seq)
+        delay = rng.uniform(2.0, 5.0)
+        time.sleep(delay)
+
+    # captcha_gate: intercept navigation and serve a gate page instead.
+    # The gate presents a simple math problem; solving it redirects back to
+    # the original target URL (stored in the session).
+    # Skip if we're already on the gate route (avoid infinite recursion) or
+    # if the user just solved it (captcha_solved flag).
+    if "captcha_gate" in active and request.path != "/captcha-gate" and not request.args.get("captcha_solved"):
+        target = request.full_path if request.query_string else request.path
+        gate_url = f"/captcha-gate?target={target}"
+        return redirect(gate_url)
+
+    # unexpected_redirect: navigation randomly lands on a promo/interstitial
+    # page instead of the target. The bot must detect the detour and route
+    # back to the intended URL. Skip if already on the interstitial route
+    # (avoid infinite recursion) or if the user came from the interstitial
+    # (detour_handled flag).
+    if "unexpected_redirect" in active and request.path != "/interstitial" and not request.args.get("detour_handled"):
+        target = request.full_path if request.query_string else request.path
+        interstitial_url = f"/interstitial?target={target}"
+        return redirect(interstitial_url)
+
+    # dom_drift: flag set so routes can switch to alternate templates.
+    g.dom_drift = "dom_drift" in active
 
     return None
 
@@ -167,6 +202,32 @@ def _popup_modal_html():
     )
 
 
+def _blocked_clicks_html():
+    # Injects a sticky overlay over key controls (pagination links,
+    # item links). The bot must detect the overlay (click intercepted),
+    # dismiss it via the close button or Escape key, then retry the
+    # action. The overlay is injected just before </body> like the
+    # other content-level chaos.
+    return (
+        '<div id="click-block-overlay" class="overlay-block" role="presentation">'
+        '<div class="overlay-sticky">'
+        '<span>Tip: Browse our featured collections!</span>'
+        '<button id="overlay-dismiss" class="overlay-close">&times;</button>'
+        '</div>'
+        '</div>'
+        "<script>(function(){"
+        "var o=document.getElementById('click-block-overlay');"
+        "var d=document.getElementById('overlay-dismiss');"
+        "function remove(){if(o)o.remove();"
+        "document.removeEventListener('keydown',onKey);}"
+        "function onKey(e){if(e.key==='Escape')remove();}"
+        "if(d)d.addEventListener('click',remove);"
+        "o.addEventListener('click',function(e){if(e.target===o)remove();});"
+        "document.addEventListener('keydown',onKey);"
+        "})();</script>"
+    )
+
+
 @app.after_request
 def inject_content_chaos(response):
     """Inject content-level disruptions (modal, cookie banner) into HTML
@@ -175,6 +236,9 @@ def inject_content_chaos(response):
     active = getattr(g, "chaos", set())
     if not active:
         return response
+    # Skip redirects (3xx) — no HTML body to inject into.
+    if 300 <= response.status_code < 400:
+        return response
     ctype = response.headers.get("Content-Type", "")
     if "text/html" not in ctype:
         return response
@@ -182,6 +246,9 @@ def inject_content_chaos(response):
     injections = ""
     if "popup_modal" in active:
         injections += _popup_modal_html()
+
+    if "blocked_clicks" in active:
+        injections += _blocked_clicks_html()
 
     # cookie_banner only on "first visit": show it until the browser has the
     # cookie_consent cookie, then set the cookie so it does not reappear.
@@ -218,8 +285,9 @@ def listing():
     start = (page - 1) * PER_PAGE
     page_items = items[start:start + PER_PAGE]
 
+    template = "listing_drift.html" if getattr(g, "dom_drift", False) else "listing.html"
     return render_template(
-        "listing.html",
+        template,
         items=page_items,
         page=page,
         total_pages=total_pages,
@@ -236,7 +304,84 @@ def detail(item_id):
     item = next((i for i in items if i.get("id") == item_id), None)
     if item is None:
         abort(404)
-    return render_template("detail.html", item=item)
+    template = "detail_drift.html" if getattr(g, "dom_drift", False) else "detail.html"
+    return render_template(template, item=item)
+
+
+@app.route("/captcha-gate")
+def captcha_gate():
+    """Serve a simple math gate page that interrupts navigation.
+
+    The user must solve a basic addition problem to proceed. On correct
+    submission, they are redirected back to the original target URL.
+    The two numbers are deterministic per target URL (seeded) so the bot
+    can read and solve them programmatically.
+    """
+    cfg = load_chaos()
+    target = request.args.get("target", "/")
+
+    # Seed from the target URL so the numbers are stable across the gate
+    # page render and the answer submission for the same target.
+    rng = random.Random(cfg.get("seed", 0) * 1_000_003 + hash(target))
+    a = rng.randint(1, 20)
+    b = rng.randint(1, 20)
+    answer = a + b
+
+    # If the user submitted an answer, check it.
+    submitted = request.args.get("answer")
+    if submitted is not None:
+        try:
+            if int(submitted) == answer:
+                # Append captcha_solved=1 to the target so the before_request
+                # hook doesn't intercept again on this navigation.
+                parsed = urlparse(target)
+                qs = parse_qs(parsed.query)
+                qs["captcha_solved"] = ["1"]
+                new_query = urlencode(qs, doseq=True)
+                new_target = urlunparse(parsed._replace(query=new_query))
+                return redirect(new_target)
+        except (TypeError, ValueError):
+            pass
+        # Wrong answer — re-render with an error.
+        return render_template(
+            "captcha_gate.html",
+            num_a=a,
+            num_b=b,
+            target=target,
+            error="Incorrect, try again.",
+        )
+
+    return render_template(
+        "captcha_gate.html",
+        num_a=a,
+        num_b=b,
+        target=target,
+        error=None,
+    )
+
+
+@app.route("/interstitial")
+def interstitial():
+    """Serve a promo/interstitial page that interrupts navigation.
+
+    The user must click through to return to the original target URL.
+    The target URL is passed as a query parameter and appended with
+    detour_handled=1 so the before_request hook doesn't intercept again.
+    """
+    target = request.args.get("target", "/")
+
+    # Build the return URL with the detour_handled flag.
+    parsed = urlparse(target)
+    qs = parse_qs(parsed.query)
+    qs["detour_handled"] = ["1"]
+    new_query = urlencode(qs, doseq=True)
+    return_target = urlunparse(parsed._replace(query=new_query))
+
+    return render_template(
+        "interstitial.html",
+        target=target,
+        return_url=return_target,
+    )
 
 
 if __name__ == "__main__":

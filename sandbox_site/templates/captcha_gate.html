@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Security Check</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>Security Check</h1>
+  <p>Please solve the following to continue:</p>
+
+  <form id="captcha-form" method="get" action="{{ url_for('captcha_gate') }}">
+    <input type="hidden" name="target" value="{{ target }}">
+    <p>What is {{ num_a }} + {{ num_b }}?</p>
+    <input type="number" name="answer" id="answer" required>
+    <button type="submit">Submit</button>
+  </form>
+
+  {% if error %}
+  <p class="error">{{ error }}</p>
+  {% endif %}
+</body>
+</html>

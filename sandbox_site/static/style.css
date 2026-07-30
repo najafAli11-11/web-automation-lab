@@ -207,3 +207,43 @@ dl#item-detail dd { margin: 0; }
   font-weight: 600;
   cursor: pointer;
 }
+
+/* Click-block overlay — fixed fullscreen, sits above content but
+   below the modal so both can coexist (modal can still be dismissed). */
+.overlay-block {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 4rem;
+  background: rgba(10, 9, 20, 0.2);
+}
+
+.overlay-sticky {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: #2a1f3d;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.overlay-sticky span { flex: 1; }
+
+.overlay-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.overlay-close:hover { color: var(--ink); }

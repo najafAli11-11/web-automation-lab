@@ -4,35 +4,35 @@
   "scenarios": {
     "popup_modal": {
       "enabled": false,
-      "probability": 0.3
+      "probability": 0.37
     },
     "cookie_banner": {
       "enabled": false,
-      "probability": 1.0
+      "probability": 0.58
     },
     "captcha_gate": {
       "enabled": false,
-      "probability": 0.2
+      "probability": 0.12
     },
     "server_errors": {
       "enabled": false,
-      "probability": 0.2
+      "probability": 0.25
     },
     "slow_responses": {
       "enabled": false,
-      "probability": 0.3
+      "probability": 0.44
     },
     "unexpected_redirect": {
       "enabled": false,
-      "probability": 0.2
+      "probability": 0.19
     },
     "dom_drift": {
       "enabled": false,
-      "probability": 0.4
+      "probability": 0.33
     },
     "blocked_clicks": {
       "enabled": false,
-      "probability": 0.3
+      "probability": 0.71
     }
   }
 }

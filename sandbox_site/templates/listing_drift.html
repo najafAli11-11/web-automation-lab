@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Retro Game Marketplace</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav id="pag-nav">
+    {% if has_prev %}
+    <a href="{{ url_for('listing', page=page-1) }}" rel="prev" class="prev-link">&laquo; Previous</a>
+    {% endif %}
+    {% if has_next %}
+    <a href="{{ url_for('listing', page=page+1) }}" rel="next" class="next-link">Next &raquo;</a>
+    {% endif %}
+  </nav>
+
+  <p class="listing-summary">{{ total_items }} listings &mdash; page {{ page }} of {{ total_pages }}</p>
+
+  <ol class="game-list">
+    {% for item in items %}
+    <li class="product-card">
+      <span class="prod-platform">[{{ item.platform }}]</span>
+      <span class="prod-price">${{ "%.2f"|format(item.price) }}</span>
+      <span class="prod-condition">{{ item.condition }}</span>
+      <a href="{{ url_for('detail', item_id=item.id) }}" class="prod-title">{{ item.title }}</a>
+    </li>
+    {% endfor %}
+  </ol>
+</body>
+</html>
