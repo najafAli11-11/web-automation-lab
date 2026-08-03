@@ -4,17 +4,40 @@
   <meta charset="utf-8">
   <title>Security Check</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .captcha-grid { display: grid; grid-template-columns: repeat(3, 74px); gap: 4px; margin: 16px 0; }
+    .captcha-grid .tile { cursor: pointer; border: 3px solid #ccc; border-radius: 4px; }
+    .captcha-grid .tile.selected { border-color: #4caf50; background: #e8f5e9; }
+    .captcha-grid .tile img { display: block; width: 68px; height: 68px; }
+  </style>
 </head>
 <body>
   <h1>Security Check</h1>
-  <p>Please solve the following to continue:</p>
+  <p>Select all tiles containing <strong>{{ target_shape }}</strong>:</p>
 
-  <form id="captcha-form" method="get" action="{{ url_for('captcha_gate') }}">
+  <form id="captcha-form" method="post" action="{{ url_for('captcha_gate') }}">
     <input type="hidden" name="target" value="{{ target }}">
-    <p>What is {{ num_a }} + {{ num_b }}?</p>
-    <input type="number" name="answer" id="answer" required>
-    <button type="submit">Submit</button>
+    <div class="captcha-grid">
+      {% for tile in tiles %}
+      <div class="tile" data-idx="{{ loop.index0 }}" onclick="toggle(this)">
+        <img src="{{ tile }}" alt="tile {{ loop.index0 }}" width="70" height="70">
+      </div>
+      {% endfor %}
+    </div>
+    <input type="hidden" name="selected" id="selected-input" value="">
+    <button type="submit">Verify</button>
   </form>
+
+  <script>
+    function toggle(el) {
+      el.classList.toggle('selected');
+      var indices = [];
+      document.querySelectorAll('.tile.selected').forEach(function(t) {
+        indices.push(t.getAttribute('data-idx'));
+      });
+      document.getElementById('selected-input').value = indices.join(',');
+    }
+  </script>
 
   {% if error %}
   <p class="error">{{ error }}</p>

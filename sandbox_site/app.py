@@ -11,16 +11,21 @@ after_request hook. The bot never reads chaos.json — it only sees the
 resulting HTML/status like a human would.
 """
 
+import base64
+import io
 import json
 import math
 import random
 import time
+from math import cos, sin, radians
 from pathlib import Path
 from urllib.parse import urlencode, urlparse, parse_qs, urlunparse
 
-from flask import Flask, abort, g, redirect, render_template, request
+from flask import Flask, abort, g, redirect, render_template, request, session
+from PIL import Image, ImageDraw, ImageFont
 
 app = Flask(__name__)
+app.secret_key = "sandbox-captcha-secret-2026"
 
 _HERE = Path(__file__).resolve().parent
 # Data lives next to this file, in data/items.json.
@@ -100,7 +105,11 @@ def apply_chaos():
     effects. Content-level effects are applied later in after_request."""
     global _request_seq
     # Only chaos-decorate real pages; skip static assets so CSS still loads.
-    if request.path.startswith("/static/"):
+    # /favicon.ico is skipped too: browsers auto-fetch it, and routing it
+    # through the captcha gate would re-render a different grid and clobber
+    # session["correct_indices"], rejecting the correct answer for the grid
+    # the user actually sees.
+    if request.path.startswith("/static/") or request.path == "/favicon.ico":
         g.chaos = set()
         return None
 
@@ -308,53 +317,128 @@ def detail(item_id):
     return render_template(template, item=item)
 
 
-@app.route("/captcha-gate")
-def captcha_gate():
-    """Serve a simple math gate page that interrupts navigation.
+SHAPES = ["circle", "square", "triangle", "star", "diamond", "cross", "arrow", "heart"]
 
-    The user must solve a basic addition problem to proceed. On correct
-    submission, they are redirected back to the original target URL.
-    The two numbers are deterministic per target URL (seeded) so the bot
-    can read and solve them programmatically.
-    """
+
+def _draw_shape(draw, shape, cx, cy, size, rng):
+    half = size // 2
+    if shape == "circle":
+        draw.ellipse([cx - half, cy - half, cx + half, cy + half], outline=0, width=2)
+    elif shape == "square":
+        draw.rectangle([cx - half, cy - half, cx + half, cy + half], outline=0, width=2)
+    elif shape == "triangle":
+        draw.polygon([(cx, cy - half), (cx - half, cy + half), (cx + half, cy + half)], outline=0, width=2)
+    elif shape == "star":
+        pts = []
+        for i in range(5):
+            angle = i * 72 - 90
+            outer_x = cx + int(half * cos(radians(angle)))
+            outer_y = cy + int(half * sin(radians(angle)))
+            pts.append((outer_x, outer_y))
+            angle += 36
+            inner_x = cx + int(half * 0.4 * cos(radians(angle)))
+            inner_y = cy + int(half * 0.4 * sin(radians(angle)))
+            pts.append((inner_x, inner_y))
+        draw.polygon(pts, outline=0, width=2)
+    elif shape == "diamond":
+        draw.polygon([(cx, cy - half), (cx + half, cy), (cx, cy + half), (cx - half, cy)], outline=0, width=2)
+    elif shape == "cross":
+        w = max(2, half // 2)
+        draw.rectangle([cx - w, cy - half, cx + w, cy + half], outline=0, width=2)
+        draw.rectangle([cx - half, cy - w, cx + half, cy + w], outline=0, width=2)
+    elif shape == "arrow":
+        draw.polygon([(cx - half, cy + half), (cx, cy - half), (cx + half, cy + half)], outline=0, width=2)
+        draw.line([(cx, cy - half), (cx, cy)], fill=0, width=2)
+    elif shape == "heart":
+        r = half // 2
+        draw.ellipse([cx - r, cy - r, cx + r, cy + r], outline=0, width=2)
+        draw.ellipse([cx - r + r // 2, cy - r, cx + r + r // 2, cy + r], outline=0, width=2)
+        draw.polygon([(cx - r - 1, cy + r // 2), (cx + r + r // 2 + 1, cy + r // 2), (cx + r // 4, cy + half + 2)], outline=0, width=2)
+
+
+def _render_tile(shape, seed):
+    size = 70
+    rng = random.Random(seed)
+    img = Image.new("RGB", (size, size), (255, 255, 255))
+    draw = ImageDraw.Draw(img)
+    for _ in range(rng.randint(0, 3)):
+        draw.line(
+            [(rng.randint(0, size), rng.randint(0, size)),
+             (rng.randint(0, size), rng.randint(0, size))],
+            fill=(rng.randint(200, 240),) * 3, width=1,
+        )
+    _draw_shape(draw, shape, size // 2, size // 2, 36, rng)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return f"data:image/png;base64,{base64.b64encode(buf.getvalue()).decode('ascii')}"
+
+
+_SHAPE_NAMES = {
+    "circle": "a circle",
+    "square": "a square",
+    "triangle": "a triangle",
+    "star": "a star",
+    "diamond": "a diamond",
+    "cross": "a cross",
+    "arrow": "an arrow",
+    "heart": "a heart",
+}
+
+
+def _build_captcha(cfg, target):
+    """Deterministically build the tile grid for (seed, target).
+
+    Returns (tiles, target_shape_key, correct_indices). Deterministic so the
+    error-retry POST can re-render the exact same grid without storing the
+    rendered images in the session cookie (which would blow past the browser's
+    4KB per-cookie limit)."""
+    rng = random.Random(cfg.get("seed", 0) * 1_000_003 + hash(target))
+    tiled = [rng.choice(SHAPES) for _ in range(9)]
+    target_shape = rng.choice(list(set(tiled)))
+    correct_indices = [str(i) for i, s in enumerate(tiled) if s == target_shape]
+    tiles = [_render_tile(s, rng.randint(0, 99999)) for s in tiled]
+    return tiles, target_shape, correct_indices
+
+
+@app.route("/captcha-gate", methods=["GET", "POST"])
+def captcha_gate():
     cfg = load_chaos()
     target = request.args.get("target", "/")
 
-    # Seed from the target URL so the numbers are stable across the gate
-    # page render and the answer submission for the same target.
-    rng = random.Random(cfg.get("seed", 0) * 1_000_003 + hash(target))
-    a = rng.randint(1, 20)
-    b = rng.randint(1, 20)
-    answer = a + b
-
-    # If the user submitted an answer, check it.
-    submitted = request.args.get("answer")
-    if submitted is not None:
-        try:
-            if int(submitted) == answer:
-                # Append captcha_solved=1 to the target so the before_request
-                # hook doesn't intercept again on this navigation.
-                parsed = urlparse(target)
-                qs = parse_qs(parsed.query)
-                qs["captcha_solved"] = ["1"]
-                new_query = urlencode(qs, doseq=True)
-                new_target = urlunparse(parsed._replace(query=new_query))
-                return redirect(new_target)
-        except (TypeError, ValueError):
-            pass
-        # Wrong answer — re-render with an error.
+    if request.method == "POST":
+        target = request.form.get("target") or request.args.get("target", "/")
+        expected = set(session.get("correct_indices", []))
+        if not expected:
+            return render_template("captcha_gate.html", target=target, error="Session expired, try again.", tiles=[], target_shape="?")
+        submitted_raw = request.form.get("selected", "")
+        submitted = set(submitted_raw.split(",")) if submitted_raw else set()
+        if submitted == expected:
+            parsed = urlparse(target)
+            qs = parse_qs(parsed.query)
+            qs["captcha_solved"] = ["1"]
+            new_query = urlencode(qs, doseq=True)
+            new_target = urlunparse(parsed._replace(query=new_query))
+            session.pop("correct_indices", None)
+            session.pop("target_shape", None)
+            return redirect(new_target)
+        # Re-render the identical grid from the seed rather than the session.
+        tiles, _, _ = _build_captcha(cfg, target)
         return render_template(
             "captcha_gate.html",
-            num_a=a,
-            num_b=b,
             target=target,
-            error="Incorrect, try again.",
+            error="Incorrect selection, try again.",
+            tiles=tiles,
+            target_shape=_SHAPE_NAMES.get(session.get("target_shape", ""), "?"),
         )
+
+    tiles, target_shape, correct_indices = _build_captcha(cfg, target)
+    session["correct_indices"] = correct_indices
+    session["target_shape"] = target_shape
 
     return render_template(
         "captcha_gate.html",
-        num_a=a,
-        num_b=b,
+        tiles=tiles,
+        target_shape=_SHAPE_NAMES[target_shape],
         target=target,
         error=None,
     )
