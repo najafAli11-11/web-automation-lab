@@ -2,3 +2,8 @@ venv/
 __pycache__/
 runs/
 node_modules/
+*.log
+sandbox_stdout.log
+sandbox_stderr.log
+
+.push_plan.json
